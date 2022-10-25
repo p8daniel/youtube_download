@@ -122,12 +122,14 @@ def add_cover_mp3(image_path: Path):
     converted_image_path = image_path.parent / f"{image_path.stem}.jpg"
 
     if image_path.suffix == ".webp":
+        logger.info(f"Converting {image_path} to jpg")
         im = Image.open(image_path).convert("RGB")
         im.save(converted_image_path, "jpeg")
+        logger.info(f"Deleting {image_path} to jpg")
         image_path.unlink()  # delete the file
 
     if not converted_image_path.exists():
-        logger.error(f"picture not found {converted_image_path}")
+        logger.error(f"Picture {converted_image_path} not found")
         return
 
     audio = MP3(audio_path, ID3=ID3)
@@ -141,6 +143,7 @@ def add_cover_mp3(image_path: Path):
     )
     # edit ID3 tags to open and read the picture from the path specified and assign it
     audio.save()  # save the current changes
+    logger.info(f"Deleting {converted_image_path} to jpg")
     converted_image_path.unlink()
 
 
@@ -162,15 +165,15 @@ def execute_download(only_audio: bool = False, destination_folder: Path = DEFAUL
         os.makedirs(destination_folder)
     for video_url in video_urls:
         if only_audio:
-
             print("Destination folder: ", destination_folder)
-            titles = download_from_youtube(
-                video_url, destination_folder, ydl_options=ydl_opts_audio
-            )
-
+            try:
+                titles = download_from_youtube(
+                    video_url, destination_folder, ydl_options=ydl_opts_audio
+                )
+            except (Exception, KeyboardInterrupt) as exc:
+                logger.exception(exc)
             for count, image in enumerate(paths_images):
                 add_cover_mp3(image)
         else:
-
             print("Destination folder: ", destination_folder)
             download_from_youtube(video_url, destination_folder, ydl_opts_video)
