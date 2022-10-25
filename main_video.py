@@ -1,6 +1,5 @@
-
-
+from download_yt import execute_download
 
 if __name__ == '__main__':
-    print_hi('PyCharm')
+    execute_download()
 

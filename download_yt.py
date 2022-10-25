@@ -124,7 +124,7 @@ def add_cover_mp3(audio_path, image_file):
         raise Exception(f"picture not found {picture_path}")
 
 
-def execute_main(only_audio: bool):
+def execute_download(only_audio: bool = False):
     global paths_video, paths_audio, paths_images
     paths_video = []
     paths_audio = []
