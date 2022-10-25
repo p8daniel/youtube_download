@@ -1,17 +1,13 @@
-import os
 import sys
 
 import yt_dlp as youtube_dl
 
-# import easygui
+
 from pathlib import Path
 from mutagen.mp3 import MP3
 from mutagen.id3 import ID3, APIC
-from webptools import dwebp
 from PIL import Image
 
-ONLY_AUDIO = True
-# ONLY_AUDIO = False
 #
 # https://github.com/ytdl-org/youtube-dl/blob/3e4cedf9e8cd3157df2457df7274d0c842421945/youtube_dl/YoutubeDL.py#L137-L312  for options
 # https://github.com/ytdl-org/youtube-dl/blob/master/README.md#readme
@@ -68,10 +64,6 @@ ydl_opts_audio = {
     "postprocessors": [
         {"key": "FFmpegExtractAudio", "preferredcodec": "mp3", "preferredquality": "192",}
     ],
-    # 'postprocessors': [{
-    #     'key': 'FFmpegVideoConvertor',
-    #     'preferedformat': 'avi',
-    # }],
     "ignoreerrors": True,
     "forcefilename": True,
     "logger": MyLogger(),
@@ -104,7 +96,6 @@ def download_from_youtube(video_url, destination_folder, ydl_opts):
         # Just a video
         print(result["webpage_url"])
         print(result["title"])
-        # print(video["format"])
     return [result["title"]]
 
 
@@ -133,12 +124,11 @@ def add_cover_mp3(audio_path, image_file):
         raise Exception(f"picture not found {picture_path}")
 
 
-def execute_main():
+def execute_main(only_audio: bool):
     global paths_video, paths_audio, paths_images
     paths_video = []
     paths_audio = []
     paths_images = []
-    video_urls = []
     if len(sys.argv) == 1:
         print("Donne moi l'adresse youtube")
         while True:
@@ -150,9 +140,8 @@ def execute_main():
                 continue
     else:
         video_urls = sys.argv[1:]
-    # destination_folder = easygui.diropenbox()
     for video_url in video_urls:
-        if ONLY_AUDIO:
+        if only_audio:
             destination_folder = Path("/home/daniel.pelati/Music/")
             print("Destination folder: ", destination_folder)
             titles = download_from_youtube(video_url, destination_folder, ydl_opts_audio)
@@ -163,7 +152,3 @@ def execute_main():
             destination_folder = Path("/home/daniel.pelati/Videos/")
             print("Destination folder: ", destination_folder)
             download_from_youtube(video_url, destination_folder, ydl_opts_video)
-
-
-if __name__ == "__main__":
-    execute_main()
