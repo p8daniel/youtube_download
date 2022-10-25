@@ -36,14 +36,16 @@ DEFAULT_FOLDER = Path(__file__).parent / "download"
 paths_video = []
 paths_audio = []
 paths_images = []
-webp_pattern = re.compile(r"\[info\] Writing video thumbnail ([0-9]+ )?to: (?P<path>.*\.webp)")
+webp_pattern = re.compile(
+    r"\[info\] Writing video thumbnail ([0-9]+ )?to: (?P<path>.*\.(webp|jpg|png))"
+)
 
 logger = logging.getLogger(__name__)
 
 
 class MyLogger(object):
     def debug(self, msg):
-        print(msg)
+        logger.info(msg)
         global paths_video, paths_audio, paths_images
         if "[ExtractAudio] Destination: " in msg:
             paths_audio.append(Path(msg.replace("[ExtractAudio] Destination: ", "")))
@@ -55,10 +57,10 @@ class MyLogger(object):
             paths_images.append(Path(match.group("path")))
 
     def warning(self, msg):
-        print(msg)
+        logger.warning(msg)
 
     def error(self, msg):
-        print(msg)
+        logger.error(msg)
 
 
 ydl_opts_video = {
@@ -103,14 +105,14 @@ def download_from_youtube(video_url, destination_folder, ydl_options: Dict):
         result_titles = []
         # Can be a playlist or a list of videos
         for video in result["entries"]:
-            print(video["webpage_url"])
-            print(video["title"])
+            logger.info(video["webpage_url"])
+            logger.info(video["title"])
             result_titles.append(video["title"])
         return result_titles
     else:
         # Just a video
-        print(result["webpage_url"])
-        print(result["title"])
+        logger.info(result["webpage_url"])
+        logger.info(result["title"])
     return [result["title"]]
 
 
@@ -121,7 +123,7 @@ def add_cover_mp3(image_path: Path):
         return
     converted_image_path = image_path.parent / f"{image_path.stem}.jpg"
 
-    if image_path.suffix == ".webp":
+    if image_path.suffix == ".webp" or image_path.suffix == ".png":
         logger.info(f"Converting {image_path} to jpg")
         im = Image.open(image_path).convert("RGB")
         im.save(converted_image_path, "jpeg")
@@ -163,9 +165,9 @@ def execute_download(only_audio: bool = False, destination_folder: Path = DEFAUL
         video_urls = sys.argv[1:]
     if not os.path.exists(destination_folder):
         os.makedirs(destination_folder)
+    logger.info("Destination folder: ", destination_folder)
     for video_url in video_urls:
         if only_audio:
-            print("Destination folder: ", destination_folder)
             try:
                 titles = download_from_youtube(
                     video_url, destination_folder, ydl_options=ydl_opts_audio
@@ -175,5 +177,4 @@ def execute_download(only_audio: bool = False, destination_folder: Path = DEFAUL
             for count, image in enumerate(paths_images):
                 add_cover_mp3(image)
         else:
-            print("Destination folder: ", destination_folder)
             download_from_youtube(video_url, destination_folder, ydl_opts_video)
