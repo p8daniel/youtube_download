@@ -1,4 +1,8 @@
+import logging
+import os
+import re
 import sys
+from typing import Dict
 
 import yt_dlp as youtube_dl
 
@@ -27,16 +31,28 @@ from PIL import Image
 # 18          mp4       640x360
 # 22          mp4       1280x720    (best)
 
+DEFAULT_FOLDER = Path(__file__).parent / "download"
+
+paths_video = []
+paths_audio = []
+paths_images = []
+webp_pattern = re.compile(r"\[info\] Writing video thumbnail ([0-9]+ )?to: (?P<path>.*\.webp)")
+
+logger = logging.getLogger(__name__)
+
 
 class MyLogger(object):
     def debug(self, msg):
         print(msg)
-        if "[ffmpeg] Destination: " in msg:
-            paths_audio.append(Path(msg.replace("[ffmpeg] Destination: ", "")))
+        global paths_video, paths_audio, paths_images
+        if "[ExtractAudio] Destination: " in msg:
+            paths_audio.append(Path(msg.replace("[ExtractAudio] Destination: ", "")))
         elif "[download] Destination: " in msg:
             paths_video.append(Path(msg.replace("[download] Destination: ", "")))
         elif "Writing thumbnail to: " in msg:
             paths_images.append(Path(msg.split("Writing thumbnail to: ")[-1]))
+        elif match := re.match(webp_pattern, msg):
+            paths_images.append(Path(match.group("path")))
 
     def warning(self, msg):
         print(msg)
@@ -48,7 +64,6 @@ class MyLogger(object):
 ydl_opts_video = {
     # 'format': 'bestaudio/best',  # choice of quality
     # 'format': '140/134',  # choice of quality ; see formats above
-    # 'extractaudio': True,  # only keep the audio
     # "ignoreerrors": True
 }
 
@@ -62,24 +77,24 @@ ydl_opts_audio = {
     # 'noplaylist': True,  # only download single song, not playlist
     #
     "postprocessors": [
-        {"key": "FFmpegExtractAudio", "preferredcodec": "mp3", "preferredquality": "192",}
+        {"key": "FFmpegExtractAudio", "preferredcodec": "mp3", "preferredquality": "192"}
     ],
     "ignoreerrors": True,
     "forcefilename": True,
     "logger": MyLogger(),
-    "keepvideo" : True
+    "keepvideo": False,
 }
 
 
-def download_from_youtube(video_url, destination_folder, ydl_opts):
+def download_from_youtube(video_url, destination_folder, ydl_options: Dict):
     if "playlist" in video_url or "list" in video_url:
         path = destination_folder / "%(playlist)s" / "%(playlist_index)s _ %(title)s.%(ext)s"
     else:
         path = destination_folder / "%(title)s.%(ext)s"
 
-    ydl_opts["outtmpl"] = str(path)
+    ydl_options["outtmpl"] = str(path)
 
-    ydl = youtube_dl.YoutubeDL(ydl_opts)
+    ydl = youtube_dl.YoutubeDL(ydl_options)
 
     with ydl:
         result = ydl.extract_info(video_url, download=True)
@@ -99,56 +114,63 @@ def download_from_youtube(video_url, destination_folder, ydl_opts):
     return [result["title"]]
 
 
-def add_cover_mp3(audio_path, image_file):
-    picture_path = image_file.with_suffix(".jpg")
+def add_cover_mp3(image_path: Path):
+    audio_path = image_path.parent / f"{image_path.stem}.mp3"
+    if not audio_path.exists():
+        logger.error(f"The audio file {audio_path} does not exists and the cover cannot be added")
+        return
+    converted_image_path = image_path.parent / f"{image_path.stem}.jpg"
 
-    if image_file.suffix == ".webp":
-        im = Image.open(image_file).convert("RGB")
-        im.save(picture_path)
-        image_file.unlink()
+    if image_path.suffix == ".webp":
+        im = Image.open(image_path).convert("RGB")
+        im.save(converted_image_path, "jpeg")
+        image_path.unlink()  # delete the file
 
-    if picture_path.exists():
-        audio = MP3(audio_path, ID3=ID3)
-        # adding ID3 tag if it is not present
-        try:
-            audio.add_tags()
-        except:
-            pass
-        audio.tags.add(
-            APIC(mime="image/jpeg", type=3, desc="Cover", data=open(picture_path, "rb").read(),)
-        )
-        # edit ID3 tags to open and read the picture from the path specified and assign it
-        audio.save()  # save the current changes
-        picture_path.unlink()
-    else:
-        raise Exception(f"picture not found {picture_path}")
+    if not converted_image_path.exists():
+        logger.error(f"picture not found {converted_image_path}")
+        return
+
+    audio = MP3(audio_path, ID3=ID3)
+    # adding ID3 tag if it is not present
+    try:
+        audio.add_tags()
+    except:
+        pass
+    audio.tags.add(
+        APIC(mime="image/jpeg", type=3, desc="Cover", data=open(converted_image_path, "rb").read())
+    )
+    # edit ID3 tags to open and read the picture from the path specified and assign it
+    audio.save()  # save the current changes
+    converted_image_path.unlink()
 
 
-def execute_download(only_audio: bool = False):
+def execute_download(only_audio: bool = False, destination_folder: Path = DEFAULT_FOLDER):
+
     global paths_video, paths_audio, paths_images
-    paths_video = []
-    paths_audio = []
-    paths_images = []
     if len(sys.argv) == 1:
         print("Donne moi l'adresse youtube")
         while True:
             video_urls = [input(">")]
-            if "youtube.com/" in video_urls[0] or 'youtu.be' in video_urls[0]:
+            if "youtube.com/" in video_urls[0] or "youtu.be" in video_urls[0]:
                 break
             else:
                 print("Ceci n'est pas une adresse youtube, reessayer")
                 continue
     else:
         video_urls = sys.argv[1:]
+    if not os.path.exists(destination_folder):
+        os.makedirs(destination_folder)
     for video_url in video_urls:
         if only_audio:
-            destination_folder = Path("/home/daniel.pelati/Music/")
-            print("Destination folder: ", destination_folder)
-            titles = download_from_youtube(video_url, destination_folder, ydl_opts_audio)
 
-            for count, audio in enumerate(paths_audio):
-                add_cover_mp3(audio, paths_images[count])
+            print("Destination folder: ", destination_folder)
+            titles = download_from_youtube(
+                video_url, destination_folder, ydl_options=ydl_opts_audio
+            )
+
+            for count, image in enumerate(paths_images):
+                add_cover_mp3(image)
         else:
-            destination_folder = Path("/home/daniel.pelati/Videos/")
+
             print("Destination folder: ", destination_folder)
             download_from_youtube(video_url, destination_folder, ydl_opts_video)
