@@ -1,4 +1,4 @@
-mutagen
-yt-dlp
-PillowPillow
-easygui
+mutagen==1.46.0
+yt-dlp==2023.3.4
+Pillow==9.4.0
+easygui==0.98.0

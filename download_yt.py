@@ -89,6 +89,7 @@ ydl_opts_audio = {
 
 
 def download_from_youtube(video_url, destination_folder, ydl_options: Dict):
+    """Call download library to download"""
     if "playlist" in video_url or "list" in video_url:
         path = destination_folder / "%(playlist)s" / "%(playlist_index)s _ %(title)s.%(ext)s"
     else:
@@ -117,6 +118,7 @@ def download_from_youtube(video_url, destination_folder, ydl_options: Dict):
 
 
 def add_cover_mp3(image_path: Path):
+    """Add image cover to mp3 audio file"""
     audio_path = image_path.parent / f"{image_path.stem}.mp3"
     if not audio_path.exists():
         logger.error(f"The audio file {audio_path} does not exists and the cover cannot be added")
@@ -147,11 +149,12 @@ def add_cover_mp3(image_path: Path):
     )
     # edit ID3 tags to open and read the picture from the path specified and assign it
     audio.save()  # save the current changes
-    logger.info(f"Deleting {converted_image_path} to jpg")
+    logger.info(f"Deleting {converted_image_path}")
     converted_image_path.unlink()
 
 
 def get_youtube_address_console(message: str) -> str:
+    """Get a youtube address from a console user"""
     print(message)
     while True:
         video_url = input(">")
@@ -164,6 +167,7 @@ def get_youtube_address_console(message: str) -> str:
 
 
 def download_one_url(destination_folder: Path, only_audio: bool, video_url: str):
+    """Call for download of a video or an audio with image cover"""
     global paths_images
 
     if only_audio:
@@ -181,14 +185,14 @@ def download_one_url(destination_folder: Path, only_audio: bool, video_url: str)
 
 
 def execute_downloads(only_audio: bool = False, destination_folder: Path = DEFAULT_FOLDER):
-
+    """Manage download of one or multiple youtube urls"""
     if len(sys.argv) == 1:
         iteration = 0
         while iteration < 1000:
             message = (
-                "Donnez moi l'adresse youtube pour le téléchargement"
+                "\n Collez ici l'adresse youtube pour le téléchargement"
                 if iteration == 0
-                else "Donnez-moi une nouvelle adresse youtube pour un nouveau téléchargement"
+                else "Collez ici une nouvelle adresse youtube pour un nouveau téléchargement"
             )
             video_url = get_youtube_address_console(message=message)
             download_one_url(
@@ -202,4 +206,4 @@ def execute_downloads(only_audio: bool = False, destination_folder: Path = DEFAU
             download_one_url(
                 destination_folder=destination_folder, only_audio=only_audio, video_url=video_url
             )
-        print("\n Téléchargement complet \n\n")
+        print("\n Téléchargement complet \n")
