@@ -12,8 +12,8 @@ def main():
 def get_music_destination_directory() -> Path:
     music_path_folders = [
         Path.home() / "Music",
-        Path("%HOMEPATH%/Music"),
-        Path("%UserProfile%/Music"),
+        # Path("%HOMEPATH%/Music"),
+        # Path("%UserProfile%/Music"),
     ]
     for path in music_path_folders:
         if path.exists():

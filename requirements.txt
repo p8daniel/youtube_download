@@ -1,4 +1,4 @@
 mutagen
 yt-dlp
-Pillow
+PillowPillow
 easygui

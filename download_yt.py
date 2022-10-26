@@ -12,8 +12,7 @@ from mutagen.mp3 import MP3
 from mutagen.id3 import ID3, APIC
 from PIL import Image
 
-logger = logging.getLogger("mylogger")
-logger.setLevel(logging.DEBUG)
+from mylogger import logger
 
 # https://github.com/ytdl-org/youtube-dl/blob/3e4cedf9e8cd3157df2457df7274d0c842421945/youtube_dl/YoutubeDL.py#L137-L312  for options
 # https://github.com/ytdl-org/youtube-dl/blob/master/README.md#readme
@@ -168,7 +167,7 @@ def execute_download(only_audio: bool = False, destination_folder: Path = DEFAUL
         video_urls = sys.argv[1:]
     if not os.path.exists(destination_folder):
         os.makedirs(destination_folder)
-    logger.info("Destination folder: ", destination_folder)
+    logger.info("Destination folder: %s", destination_folder)
     for video_url in video_urls:
         if only_audio:
             try:
@@ -181,3 +180,4 @@ def execute_download(only_audio: bool = False, destination_folder: Path = DEFAUL
                 add_cover_mp3(image)
         else:
             download_from_youtube(video_url, destination_folder, ydl_opts_video)
+    print("Téléchargement complet")
