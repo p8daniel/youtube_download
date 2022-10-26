@@ -2,7 +2,7 @@ import logging
 import os
 import re
 import sys
-from typing import Dict
+from typing import Dict, List
 
 import yt_dlp as youtube_dl
 
@@ -154,20 +154,13 @@ def add_cover_mp3(image_path: Path):
 def execute_download(only_audio: bool = False, destination_folder: Path = DEFAULT_FOLDER):
 
     global paths_video, paths_audio, paths_images
+
     if len(sys.argv) == 1:
-        print("Donne moi l'adresse youtube")
-        while True:
-            video_urls = [input(">")]
-            if "youtube.com/" in video_urls[0] or "youtu.be" in video_urls[0]:
-                break
-            else:
-                print("Ceci n'est pas une adresse youtube, reessayer")
-                continue
+        video_urls = get_youtube_address_console()
     else:
         video_urls = sys.argv[1:]
-    if not os.path.exists(destination_folder):
-        os.makedirs(destination_folder)
-    logger.info("Destination folder: %s", destination_folder)
+
+
     for video_url in video_urls:
         if only_audio:
             try:
@@ -181,3 +174,15 @@ def execute_download(only_audio: bool = False, destination_folder: Path = DEFAUL
         else:
             download_from_youtube(video_url, destination_folder, ydl_opts_video)
     print("Téléchargement complet")
+
+
+def get_youtube_address_console() -> List[str]:
+    print("Donne moi l'adresse youtube")
+    while True:
+        video_urls = [input(">")]
+        if "youtube.com/" in video_urls[0] or "youtu.be" in video_urls[0]:
+            break
+        else:
+            print("Ceci n'est pas une adresse youtube, reessayer")
+            continue
+    return video_urls

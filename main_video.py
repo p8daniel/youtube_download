@@ -1,25 +1,11 @@
-from pathlib import Path
-
-
 from download_yt import execute_download
-
-
-def get_video_destination_directory() -> Path:
-    music_path_folders = [
-        Path.home() / "Videos",
-        Path("%HOMEPATH%/Videos"),
-        Path("%UserProfile%/Videos"),
-    ]
-    for path in music_path_folders:
-        if path.exists():
-            return path
-    import easygui as easygui
-
-    return Path(easygui.diropenbox())
+from mylogger import logger
+from utils import DefaultFolderType, get_destination_directory
 
 
 def main():
-    destination_folder = get_video_destination_directory()
+    destination_folder = get_destination_directory(default_folder=DefaultFolderType.VIDEO)
+    logger.info("Destination folder: %s", destination_folder)
     execute_download(only_audio=False, destination_folder=destination_folder)
 
 
