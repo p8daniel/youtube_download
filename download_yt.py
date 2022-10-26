@@ -67,6 +67,7 @@ ydl_opts_video = {
     # 'format': 'bestaudio/best',  # choice of quality
     # 'format': '140/134',  # choice of quality ; see formats above
     # "ignoreerrors": True
+    "postprocessors": [{"key": "FFmpegVideoConvertor", "preferedformat": "mp4"}]
 }
 
 ydl_opts_audio = {
