@@ -12,6 +12,7 @@ from mutagen.mp3 import MP3
 from mutagen.id3 import ID3, APIC
 from PIL import Image
 
+logger = logging.getLogger("mylogger")
 
 # https://github.com/ytdl-org/youtube-dl/blob/3e4cedf9e8cd3157df2457df7274d0c842421945/youtube_dl/YoutubeDL.py#L137-L312  for options
 # https://github.com/ytdl-org/youtube-dl/blob/master/README.md#readme
@@ -40,7 +41,6 @@ webp_pattern = re.compile(
     r"\[info\] Writing video thumbnail ([0-9]+ )?to: (?P<path>.*\.(webp|jpg|png))"
 )
 
-logger = logging.getLogger(__name__)
 
 
 class MyLogger(object):
