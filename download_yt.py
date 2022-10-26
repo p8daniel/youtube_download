@@ -120,6 +120,8 @@ def add_cover_mp3(image_path: Path):
     audio_path = image_path.parent / f"{image_path.stem}.mp3"
     if not audio_path.exists():
         logger.error(f"The audio file {audio_path} does not exists and the cover cannot be added")
+        if image_path.exists():
+            image_path.unlink()
         return
     converted_image_path = image_path.parent / f"{image_path.stem}.jpg"
 
