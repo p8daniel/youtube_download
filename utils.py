@@ -30,4 +30,4 @@ def get_destination_directory(default_folder: DefaultFolderType) -> Path:
             return default_folder_path
     import easygui as easygui
 
-    return Path(easygui.diropenbox(title="Dossier de destination"))
+    return Path(easygui.diropenbox(title="Sélectionner le dossier de destination"))

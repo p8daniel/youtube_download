@@ -151,38 +151,55 @@ def add_cover_mp3(image_path: Path):
     converted_image_path.unlink()
 
 
-def execute_download(only_audio: bool = False, destination_folder: Path = DEFAULT_FOLDER):
-
-    global paths_video, paths_audio, paths_images
-
-    if len(sys.argv) == 1:
-        video_urls = get_youtube_address_console()
-    else:
-        video_urls = sys.argv[1:]
-
-
-    for video_url in video_urls:
-        if only_audio:
-            try:
-                titles = download_from_youtube(
-                    video_url, destination_folder, ydl_options=ydl_opts_audio
-                )
-            except (Exception, KeyboardInterrupt) as exc:
-                logger.exception(exc)
-            for count, image in enumerate(paths_images):
-                add_cover_mp3(image)
-        else:
-            download_from_youtube(video_url, destination_folder, ydl_opts_video)
-    print("Téléchargement complet")
-
-
-def get_youtube_address_console() -> List[str]:
-    print("Donne moi l'adresse youtube")
+def get_youtube_address_console(message: str) -> str:
+    print(message)
     while True:
-        video_urls = [input(">")]
-        if "youtube.com/" in video_urls[0] or "youtu.be" in video_urls[0]:
+        video_url = input(">")
+        if "youtube.com/" in video_url or "youtu.be" in video_url:
             break
         else:
             print("Ceci n'est pas une adresse youtube, reessayer")
             continue
-    return video_urls
+    return video_url
+
+
+def download_one_url(destination_folder: Path, only_audio: bool, video_url: str):
+    global paths_images
+
+    if only_audio:
+        try:
+            titles = download_from_youtube(
+                video_url, destination_folder, ydl_options=ydl_opts_audio
+            )
+        except (Exception, KeyboardInterrupt) as exc:
+            logger.exception(exc)
+        for image_path in paths_images:
+            add_cover_mp3(image_path)
+        paths_images = []
+    else:
+        download_from_youtube(video_url, destination_folder, ydl_opts_video)
+
+
+def execute_downloads(only_audio: bool = False, destination_folder: Path = DEFAULT_FOLDER):
+
+    if len(sys.argv) == 1:
+        iteration = 0
+        while iteration < 1000:
+            message = (
+                "Donnez moi l'adresse youtube pour le téléchargement"
+                if iteration == 0
+                else "Donnez-moi une nouvelle adresse youtube pour un nouveau téléchargement"
+            )
+            video_url = get_youtube_address_console(message=message)
+            download_one_url(
+                destination_folder=destination_folder, only_audio=only_audio, video_url=video_url
+            )
+            print("\n Téléchargement complet \n\n")
+            iteration += 1
+
+    else:
+        for video_url in sys.argv[1:]:
+            download_one_url(
+                destination_folder=destination_folder, only_audio=only_audio, video_url=video_url
+            )
+        print("\n Téléchargement complet \n\n")
