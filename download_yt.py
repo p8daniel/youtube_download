@@ -79,7 +79,11 @@ ydl_opts_audio = {
     # 'noplaylist': True,  # only download single song, not playlist
     #
     "postprocessors": [
-        {"key": "FFmpegExtractAudio", "preferredcodec": "mp3", "preferredquality": "192"}
+        {
+            "key": "FFmpegExtractAudio",
+            "preferredcodec": "mp3",
+            "preferredquality": "192",
+        }
     ],
     "ignoreerrors": True,
     "forcefilename": True,
@@ -91,7 +95,11 @@ ydl_opts_audio = {
 def download_from_youtube(video_url, destination_folder, ydl_options: Dict):
     """Call download library to download"""
     if "playlist" in video_url or "list" in video_url:
-        path = destination_folder / "%(playlist)s" / "%(playlist_index)s _ %(title)s.%(ext)s"
+        path = (
+            destination_folder
+            / "%(playlist)s"
+            / "%(playlist_index)s _ %(title)s.%(ext)s"
+        )
     else:
         path = destination_folder / "%(title)s.%(ext)s"
 
@@ -121,7 +129,9 @@ def add_cover_mp3(image_path: Path):
     """Add image cover to mp3 audio file"""
     audio_path = image_path.parent / f"{image_path.stem}.mp3"
     if not audio_path.exists():
-        logger.error(f"The audio file {audio_path} does not exists and the cover cannot be added")
+        logger.error(
+            f"The audio file {audio_path} does not exists and the cover cannot be added"
+        )
         if image_path.exists():
             image_path.unlink()
         return
@@ -145,7 +155,12 @@ def add_cover_mp3(image_path: Path):
     except:
         pass
     audio.tags.add(
-        APIC(mime="image/jpeg", type=3, desc="Cover", data=open(converted_image_path, "rb").read())
+        APIC(
+            mime="image/jpeg",
+            type=3,
+            desc="Cover",
+            data=open(converted_image_path, "rb").read(),
+        )
     )
     # edit ID3 tags to open and read the picture from the path specified and assign it
     audio.save()  # save the current changes
@@ -184,7 +199,10 @@ def download_one_url(destination_folder: Path, only_audio: bool, video_url: str)
         download_from_youtube(video_url, destination_folder, ydl_opts_video)
 
 
-def execute_downloads(only_audio: bool = False, destination_folder: Path = DEFAULT_FOLDER):
+def execute_downloads(
+    only_audio: bool = False,
+    destination_folder: Path = DEFAULT_FOLDER,
+):
     """Manage download of one or multiple youtube urls"""
     if len(sys.argv) == 1:
         iteration = 0
@@ -196,7 +214,9 @@ def execute_downloads(only_audio: bool = False, destination_folder: Path = DEFAU
             )
             video_url = get_youtube_address_console(message=message)
             download_one_url(
-                destination_folder=destination_folder, only_audio=only_audio, video_url=video_url
+                destination_folder=destination_folder,
+                only_audio=only_audio,
+                video_url=video_url,
             )
             print("\n Téléchargement complet \n\n")
             iteration += 1
@@ -204,6 +224,8 @@ def execute_downloads(only_audio: bool = False, destination_folder: Path = DEFAU
     else:
         for video_url in sys.argv[1:]:
             download_one_url(
-                destination_folder=destination_folder, only_audio=only_audio, video_url=video_url
+                destination_folder=destination_folder,
+                only_audio=only_audio,
+                video_url=video_url,
             )
         print("\n Téléchargement complet \n")
