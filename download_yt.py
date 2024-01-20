@@ -223,6 +223,7 @@ def execute_downloads(
 
     else:
         for video_url in sys.argv[1:]:
+            print("Received argument:", video_url)
             download_one_url(
                 destination_folder=destination_folder,
                 only_audio=only_audio,

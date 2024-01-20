@@ -2,7 +2,7 @@
 
 source ~/dev/small/youtube_download/venv/bin/activate
 
-python3 ~/dev/small/youtube_download/main_video.py $1
+python3 ~/dev/small/youtube_download/main_video.py $@
 
 
 deactivate
