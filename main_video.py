@@ -4,7 +4,7 @@ from utils import DefaultFolderType, get_destination_directory
 
 def main():
     destination_folder = get_destination_directory(
-        default_folder=DefaultFolderType.VIDEO
+        default_folder=DefaultFolderType.MOVIES
     )
     execute_downloads(
         only_audio=False, destination_folder=destination_folder

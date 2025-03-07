@@ -5,6 +5,7 @@ from pathlib import Path
 class DefaultFolderType(str, Enum):
     VIDEO = "Videos"
     MUSIC = "Music"
+    MOVIES = "Movies"
 
 
 def get_console_confirmation(request_message: str) -> bool:

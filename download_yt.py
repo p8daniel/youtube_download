@@ -1,8 +1,6 @@
-import logging
-import os
 import re
 import sys
-from typing import Dict, List
+from typing import Dict
 
 import yt_dlp as youtube_dl
 
